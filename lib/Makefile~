@@ -1,0 +1,3 @@
+all:
+	gcc -fPIC -c helpers.c -o helpers.o
+	gcc -shared -o libhelpers.so helpers.o
