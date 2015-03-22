@@ -1,4 +1,12 @@
-all:
-	gcc -fPIC -c ../lib/helpers.c -o ../lib/helpers.o -Wextra -Werror -Wall
-	gcc -shared -o ../lib/libhelpers.so ../lib/helpers.o
-	gcc cat.c -o cat ../lib/libhelpers.so -Wextra -Werror -Wall
+CFLAGS=-Wextra -Werror -Wall
+CC = gcc
+LIB = ../lib
+
+all: cat
+	
+cat:
+	$(MAKE) -C $(LIB)
+	$(CC) cat.c -o cat -L$(LIB) -I$(LIB) -lhelpers $(CFLAGS)
+
+clean:
+	rm -f cat

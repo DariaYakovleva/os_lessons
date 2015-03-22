@@ -1,4 +1,13 @@
-all:
-	gcc -fPIC -c ../lib/helpers.c -o ../lib/helpers.o -Wextra -Werror -Wall
-	gcc -shared -o ../lib/libhelpers.so ../lib/helpers.o
-	gcc revwords.c -o revwords ../lib/libhelpers.so -Wextra -Werror -Wall
+CFLAGS=-Wextra -Werror -Wall
+CC = gcc
+LIB = ../lib
+
+all: revwords
+	
+revwords:
+	$(MAKE) -C $(LIB)
+	$(CC) revwords.c -o revwords -L$(LIB) -I$(LIB) -lhelpers $(CFLAGS)
+
+clean:
+	rm -f revwords
+
