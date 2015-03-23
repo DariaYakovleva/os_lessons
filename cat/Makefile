@@ -1,6 +1,6 @@
-CFLAGS=-Wextra -Werror -Wall
 CC = gcc
 LIB = ../lib
+CFLAGS=-Wextra -Werror -Wall -Wl,-rpath,$(LIB)
 
 all: cat
 	

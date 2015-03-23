@@ -1,10 +1,10 @@
-CFLAGS=-Wextra -Werror -Wall
+CFLAGS=-Wextra -Werror -Wall -Wl,-rpath,$(LIB)
 CC = gcc
 LIB = ../lib
 
 all: cat
 	
-cat:	cat.c    
+cat:
 	$(MAKE) -C $(LIB)
 	$(CC) cat.c -o cat -L$(LIB) -I$(LIB) -lhelpers $(CFLAGS)
 

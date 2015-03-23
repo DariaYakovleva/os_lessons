@@ -3,7 +3,7 @@ CC=gcc
 
 all:
 	$(CC) -fPIC -c helpers.c -o helpers.o $(CFLAGS)
-	$(CC) -shared -o libhelpers.so helpers.o
+	$(CC) -shared -o libhelpers.so helpers.o 
 
 clean:
 	rm -f helpers.o

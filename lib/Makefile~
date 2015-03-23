@@ -1,10 +1,10 @@
-CFLAGS=-Wextra -Werror -Wall
+CFLAGS=-Wextra  -Wall
 CC=gcc
 
 all:
 	$(CC) -fPIC -c helpers.c -o helpers.o $(CFLAGS)
-	$(CC) -shared -o libhelpers.so helpers.o
+	$(CC) -shared -o libhelpers.so helpers.o 
 
-clear:
+clean:
 	rm -f helpers.o
 	rm -f libhelpers.so
