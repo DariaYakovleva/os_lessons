@@ -62,13 +62,10 @@ int spawn(const char * file, char * const argv[]) {
         printf("fail\n");
         return -1;
     } else if (pid > 0) {
-        printf("parent\n");
         wait(&status);
         return status;
     } else {
-        printf("child\n");
-//        execv("/bin/ls", argv); EXECVP!!!!
-        return status = execv(file, argv);
+        return status = execvp(file, argv);
     }
 
 }

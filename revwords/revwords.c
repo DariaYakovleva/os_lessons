@@ -37,11 +37,15 @@ int main() {
     void *buf = malloc(MAX_LEN);
     void *rev = malloc(MAX_LEN);
     ssize_t len;
+    ssize_t error;
     while ((len = read_until(STDIN_FILENO, buf + lenBuf, MAX_LEN, ' ')) > 0) {
         lenBuf += len;
         ssize_t lenw;
         while ((lenw = reversew(rev, buf)) > 0) {
-            write_(STDOUT_FILENO, rev, lenw);
+            error = write_(STDOUT_FILENO, rev, lenw);
+	    if (error == -1) {
+	        write_(STDERR_FILENO, "write error", 5);
+	    }
         }
     }
     if (len < 0) {

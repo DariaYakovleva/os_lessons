@@ -3,9 +3,9 @@ LIB = ../lib
 NAME=filter
 CFLAGS=-Wextra -Wall -Wl,-rpath,$(LIB)
 
-all: filter
+all: $(NAME)
 	
-filter:
+filter:	$(NAME).c
 	$(MAKE) -C $(LIB)
 	$(CC) $(NAME).c -o $(NAME) -L$(LIB) -I$(LIB) -lhelpers $(CFLAGS)
 
