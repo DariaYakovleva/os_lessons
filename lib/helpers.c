@@ -57,15 +57,25 @@ ssize_t read_until(int fd, void *buffer, size_t count, char delimiter) {
 
 int spawn(const char * file, char * const argv[]) {
     pid_t pid = fork();
-    int status;
     if (pid == -1) {
         printf("fail\n");
-        return -1;
+        exit(EXIT_FAILURE);
     } else if (pid > 0) {
-        wait(&status);
-        return status;
+        int status;
+        pid_t w = waitpid(pid, &status, 0);
+        if (w == -1) {
+            exit(EXIT_FAILURE);
+        }
+        if (WIFEXITED(status)) {
+            return WEXITSTATUS(status);
+        } else {
+            exit(EXIT_FAILURE);
+        }
     } else {
-        return status = execvp(file, argv);
+        if (execvp(file, argv) != -1) {
+            exit(0);
+        }
+        exit(EXIT_FAILURE);
     }
 
 }

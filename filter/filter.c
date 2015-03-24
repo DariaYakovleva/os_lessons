@@ -13,18 +13,18 @@ ssize_t getStr(char* ans, char* w) {
         (*(ans + lenw)) = (*(w + lenw));
         lenw++;
     }
-    (*(ans + lenw)) = '\0';
     if (lenw == lenBuf) {
         return 0;
     }
-    int pos = 0;
+    (*(ans + lenw)) = '\0';
     lenw++;
+    int pos = 0;
     while (pos + lenw < lenBuf) {
         (*(w + pos)) = (*(w + lenw + pos));
         pos++;
     }
     lenBuf -= lenw;
-    return lenw - 1;
+    return lenw;
 }
 
 int main(int argc, char *argv[]) {
@@ -34,13 +34,20 @@ int main(int argc, char *argv[]) {
     void *buf = malloc(MAX_LEN);
     void *curStr = malloc(MAX_LEN);
     ssize_t len;
+    char* args[argc];
+    int i = 0;
+    while (i < argc - 1) {
+        args[i] = argv[i + 1];
+        i++;
+    }
     while ((len = read_until(STDIN_FILENO, buf + lenBuf, MAX_LEN, '\n')) > 0) {
         lenBuf += len;
         ssize_t lenw;
         while ((lenw = getStr((char*)curStr, (char*)buf)) > 0) {
-//            printf("res=%s\n", (char*)curStr);
-            argv[argc] = curStr;
-            int res = spawn(argv[1], argv + 2);
+            args[argc - 1] = (char*)curStr;
+            args[argc] = NULL;
+            int res = spawn(argv[1], args);
+//            printf("!res=%d %s!\n", res, args[argc - 1]);
             if (res == 0) {
                 write_(STDOUT_FILENO, curStr, lenw);
             }
@@ -54,8 +61,9 @@ int main(int argc, char *argv[]) {
         lenBuf++;
         ssize_t lenw;
         while ((lenw = getStr((char*)curStr, (char*)buf)) > 0) {
-            int res = spawn(argv[0], argv);
-            argv[argc] = curStr;
+            args[argc - 1] = (char*)curStr;
+            args[argc] = NULL;
+            int res = spawn(argv[1], args);
             if (res == 0) {
                 write_(STDOUT_FILENO, curStr, lenw);
             }
