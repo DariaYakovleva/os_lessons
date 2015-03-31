@@ -30,6 +30,9 @@ size_t buf_size(struct buf_t *buf) {
 }
 
 ssize_t buf_fill(int fd, struct buf_t *buf, size_t required) {
+    if (buf == NULL) {
+        abort();
+    }
     while (buf->size < required && buf->size < buf->capacity) {
         ssize_t cur = read(fd, buf->buf + buf->size, required - buf->size);
 //        printf("READ2 cur=%d size=%d req=%d\n", (int)cur, (int)buf->size, (int)required);
@@ -46,6 +49,9 @@ ssize_t buf_fill(int fd, struct buf_t *buf, size_t required) {
 }
 
 ssize_t buf_flush(int fd, struct buf_t *buf, size_t required) {
+    if (buf == NULL) {
+        abort();
+    }
     size_t cur = 0;
     size_t prevSize = buf->size;
     while (cur < required) {
