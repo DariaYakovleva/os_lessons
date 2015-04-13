@@ -1,4 +1,4 @@
-#include "bufio.h"
+﻿#include "bufio.h"
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -43,7 +43,6 @@ ssize_t buf_fill(int fd, struct buf_t *buf, size_t required) {
             return cur;
         }
         buf->size += cur;
-        required -= cur;
     }
     return buf->size;
 }
@@ -70,4 +69,50 @@ ssize_t buf_flush(int fd, struct buf_t *buf, size_t required) {
         if (buf->size == 0) break;
     }
     return prevSize - buf->size;
+}
+
+ssize_t buf_getline(int fd, struct buf_t *buf, char* dest) {
+	ssize_t len = 0;
+    while (*((char*)buf->buf + len) != '\n') {
+//        printf("@@@ %d %d\n", buf->size, len);
+        while ((size_t)len < buf->size && *((char*)buf->buf + len) != '\n') {
+            *(dest + len) = *((char*)buf->buf + len);
+            len++;
+        }
+        if ((size_t)len == buf->size) {
+            ssize_t cur = buf_fill(fd, buf, buf->size + 1);
+            if (cur == len) return 0;
+        }
+    }
+    len++;
+    int pos = 0;
+    while (pos < (int)(buf->size - len)) {
+        *((char*)buf->buf + pos) = *((char*)buf->buf + pos + len);
+        pos++;
+    }
+    buf->size -= len;
+
+    return len - 1;
+}
+
+ssize_t buf_write(int fd, struct buf_t *buf, char* src, size_t len) {
+    size_t pos = 0;
+    while (pos < len) {
+        while (pos < len && buf->size < buf->capacity) {
+            *((char*)buf->buf + buf->size) = *(src + pos);
+            pos++;
+            buf->size++;
+        }
+        ssize_t cur = 0;
+        if (buf->size == buf->capacity) {
+            cur = buf_flush(fd, buf, buf->size);
+            if (cur < 0) {
+                return -1;
+            }
+        } else {
+            *((char*)buf->buf + buf->size) = '\n';
+            buf->size++;
+        }
+    }
+    return pos;
 }
