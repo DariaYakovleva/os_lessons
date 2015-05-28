@@ -72,6 +72,7 @@ int spawn(const char * file, char * const argv[]) {
             exit(EXIT_FAILURE);
         }
     } else {
+		printf("FILE = %s\n", file);
         if (execvp(file, argv) != -1) {
             exit(0);
         }

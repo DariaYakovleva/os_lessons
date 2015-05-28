@@ -1,7 +1,7 @@
 CFLAGS=-Wextra -Wall
 CC=gcc
 
-all:	bufio helpers
+all:	libhelpers
 
 bufio:
 	$(CC) -fPIC -c bufio.c -o bufio.o $(CFLAGS)
@@ -11,8 +11,14 @@ helpers:
 	$(CC) -fPIC -c helpers.c -o helpers.o $(CFLAGS)
 	$(CC) -shared -o libhelpers.so helpers.o 
 
+libhelpers:
+	$(CC) -fPIC -c libhelpers.c -o libhelpers.o $(CFLAGS)
+	$(CC) -fPIC -c helpers.c -o helpers.o $(CFLAGS)
+	$(CC) -shared -o libhelpers.so libhelpers.o helpers.o
+
 clean:
 	rm -f helpers.o
+	rm -f libhelpers.o
 	rm -f libhelpers.so
 	rm -f bufio.o
 	rm -f libbufio.so
