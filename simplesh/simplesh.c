@@ -75,8 +75,9 @@ int main(int argc, char *argv[]) {
 		len = read_until(STDIN_FILENO, buf, MAX_LEN, '\n');
 //		printf("BUF = !%s!\n", (char*)buf);
 		ssize_t cnt = split_programs((char*)buf, len);
-		int res = runpiped(programs, cnt);
-		printf("RES = %d\n", res);
+		if (runpiped(programs, cnt) == -1) {
+			fprintf(stderr, "ooops..");
+		}
 	}
     
 	free(buf);

@@ -110,8 +110,8 @@ int runpiped(struct execargs_t **programs, size_t n) {
 		if (pid == 0) {	//child
 			close(pipefd[0]);
 			if (i < n - 1) current_output = dup2(pipefd[1], STDOUT_FILENO);
-			fprintf(stderr, "out = %d\n", pipefd[1]);
-			fprintf(stderr, "in = %d\n", next_input);
+//			fprintf(stderr, "out = %d\n", pipefd[1]);
+//			fprintf(stderr, "in = %d\n", next_input);
 			current_input = dup2(next_input, STDIN_FILENO);
 			if (next_input != STDIN_FILENO) close(next_input);
 			if (current_input == -1) {
