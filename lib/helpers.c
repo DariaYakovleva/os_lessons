@@ -6,6 +6,22 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 
+int pids[100];
+int cpid = 0;
+
+void shandler(int sig) {
+	if (sig == SIGQUIT) {
+		printf("BBB\n");
+		exit(-5);
+	} else {
+		int j;
+		for (j = 0; j < cpid; j++) {
+			kill(pids[j], SIGKILL);
+		}
+	}
+}
+
+
 ssize_t read_ (int fd, void *buffer, size_t count) {
     ssize_t curS = 0;
     while ((size_t)curS < count) {
@@ -34,11 +50,13 @@ ssize_t write_ (int fd, const void *buffer, size_t count) {
 }
 
 ssize_t read_until(int fd, void *buffer, size_t count, char delimiter) {
+
     ssize_t curS = 0;
     while ((size_t)curS < count) {
         ssize_t cur = read(fd, buffer + curS, count - curS);
         if (cur == 0) {
-            return curS;
+		return -5;
+//            return curS;
         }
         if (cur == -1) {
             return cur;
@@ -90,9 +108,16 @@ int exec(struct execargs_t* args) {
 
 
 int runpiped(struct execargs_t **programs, size_t n) {
-	int current_input = STDIN_FILENO;
-	int current_output = STDOUT_FILENO;
+	struct sigaction act2;
+	memset(&act2, 0, sizeof(act2));
+	act2.sa_handler = shandler;
+	sigaction(SIGINT, &act2, 0);
+	sigaction(SIGQUIT, &act2, 0);
+
 	int next_input = STDIN_FILENO;
+	int pipes[100];
+	int cpip = 0;
+	cpid = 0;
 	size_t i;
 	for (i = 0; i < n; i++) {
 		int pipefd[2];
@@ -101,6 +126,10 @@ int runpiped(struct execargs_t **programs, size_t n) {
 			kill(0, SIGINT);
 			return -1;
 		}
+		pipes[cpip] = pipefd[0];
+		cpip++;
+		pipes[cpip] = pipefd[1];
+		cpip++;
 	    pid_t pid = fork();
 		if (pid == -1) {
 			fprintf(stderr, "can't create child\n");
@@ -108,19 +137,22 @@ int runpiped(struct execargs_t **programs, size_t n) {
 			return -1;
 		}
 		if (pid == 0) {	//child
-			close(pipefd[0]);
-			if (i < n - 1) current_output = dup2(pipefd[1], STDOUT_FILENO);
-//			fprintf(stderr, "out = %d\n", pipefd[1]);
-//			fprintf(stderr, "in = %d\n", next_input);
-			current_input = dup2(next_input, STDIN_FILENO);
-			if (next_input != STDIN_FILENO) close(next_input);
-			if (current_input == -1) {
+//			fprintf(stderr, "%d: to = %d\n", (int)i, pipefd[1]);
+			if (i < n - 1) {
+				if (dup2(pipefd[1], STDOUT_FILENO) == -1) {
+					fprintf(stderr, "dup2 output failed\n");
+					exit(EXIT_FAILURE);
+				}
+			}
+			if (dup2(next_input, STDIN_FILENO) == -1) {
 				fprintf(stderr, "dup2 input failed\n");
 				exit(EXIT_FAILURE);
 			}
-			if (current_output == -1) {
-				fprintf(stderr, "dup2 output failed\n");
-				exit(EXIT_FAILURE);
+			int j;
+			for (j = 0; j < cpip; j++) {
+				if (pipes[j] != next_input && pipes[j] != pipefd[1]) {
+					close(pipes[j]);
+				}
 			}
 			if (exec(*(programs + i)) == 0) {
 				exit(EXIT_SUCCESS);
@@ -128,17 +160,29 @@ int runpiped(struct execargs_t **programs, size_t n) {
 				exit(EXIT_FAILURE);
 			}
 	    } else {	//parent
-			close(pipefd[1]);
-			if (next_input != STDIN_FILENO) close(next_input);
+			pids[cpid] = pid;
+			cpid++;
 			next_input = pipefd[0];
-			int status;
-			pid_t w = waitpid(pid, &status, 0);
-	        if (w == -1) {
-				return -1;
-			}
-			if (!WIFEXITED(status)) {
-				return -1;
-	        }
+//			fprintf(stderr, "read = %d, write %d\n", pipefd[0], pipefd[1]);
+		}
+	}
+	
+	int j;
+	for (j = 0; j < cpip; j++) {
+		close(pipes[j]);
+//		fprintf(stderr, "pipe close %d\n", pipes[j]);
+	}
+	for (j = 0; j < cpid; j++) {
+		int status;
+		pid_t w = waitpid(pids[j], &status, 0);
+//		fprintf(stderr, "pid end %d w = %d\n", pids[j], w);
+		if (w == -1) {
+			fprintf(stderr, "exit fail from process %d\n", pids[j]);
+			return -1;
+		}
+		if (!WIFEXITED(status)) {
+			fprintf(stderr, "exit fail from process %d\n", pids[j]);
+			return -1;
 		}
 	}
     return 0;

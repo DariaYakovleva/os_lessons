@@ -5,8 +5,10 @@
 #include <errno.h>
 #include <signal.h>
 
+
 size_t const MAX_LEN = (1 << 12) + 1;
 ssize_t lenBuf = 0;
+int ok = 1;
 
 struct execargs_t* add_program(char* str) {
 	struct execargs_t* newExec = (struct execargs_t*)malloc(sizeof(struct execargs_t));
@@ -56,25 +58,29 @@ ssize_t split_programs(char* str, ssize_t len) {
 	return cntProg;
 }
 
-void inter(int signal) {
-	if (signal == SIGINT) {
-		kill(0, SIGINT);
-	} else if (signal == SIGQUIT) {
-		kill(0, SIGINT);
-		exit(0);
-	}
+void handler(int signal) {
+	if (signal == SIGQUIT) {
+		ok = 0;
+		exit(EXIT_SUCCESS);
+	} 
 }
 
 int main(int argc, char *argv[]) {
-	signal(SIGINT, inter);
-	signal(SIGQUIT, inter);
+	struct sigaction act;
+	memset(&act, 0, sizeof(act));
+	act.sa_handler = handler;
+	sigaction(SIGINT, &act, 0);
+	sigaction(SIGQUIT, &act, 0);
+
 	void *buf = malloc(MAX_LEN);
 	ssize_t len;
-	while (1) {
+	while (ok == 1) {
 		write_(STDOUT_FILENO, "$", 1);
 		len = read_until(STDIN_FILENO, buf, MAX_LEN, '\n');
+		if (len == -5) return 0;
 //		printf("BUF = !%s!\n", (char*)buf);
 		ssize_t cnt = split_programs((char*)buf, len);
+		*(char*)buf = 0;
 		if (runpiped(programs, cnt) == -1) {
 			fprintf(stderr, "ooops..");
 		}
