@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
         }
     }
     if (len < 0) {
-        write_(STDERR_FILENO, "read error", 5);
+        write_(STDERR_FILENO, "read error", 10);
     }
     if (lenBuf > 0) {
         (*((char *)buf + lenBuf)) = '\n';

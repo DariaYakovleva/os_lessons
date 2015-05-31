@@ -11,7 +11,7 @@ int cpid = 0;
 
 void shandler(int sig) {
 	if (sig == SIGQUIT) {
-		printf("BBB\n");
+//		printf("BBB\n");
 		exit(-5);
 	} else {
 		int j;
@@ -55,8 +55,8 @@ ssize_t read_until(int fd, void *buffer, size_t count, char delimiter) {
     while ((size_t)curS < count) {
         ssize_t cur = read(fd, buffer + curS, count - curS);
         if (cur == 0) {
-		return -5;
-//            return curS;
+//		return -5;
+            return curS;
         }
         if (cur == -1) {
             return cur;
