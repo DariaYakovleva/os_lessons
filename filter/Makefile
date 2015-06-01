@@ -6,7 +6,7 @@ CFLAGS=-Wextra -Wall -Wl,-rpath,$(LIB)
 all: $(NAME)
 	
 filter:	$(NAME).c
-	$(MAKE) -C $(LIB)
+	make -C $(LIB)
 	$(CC) $(NAME).c -o $(NAME) -L$(LIB) -I$(LIB) -lhelpers $(CFLAGS)
 
 

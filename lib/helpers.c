@@ -11,7 +11,7 @@ int cpid = 0;
 
 void shandler(int sig) {
 	if (sig == SIGQUIT) {
-//		printf("BBB\n");
+		printf("BBB\n");
 		exit(-5);
 	} else {
 		int j;
