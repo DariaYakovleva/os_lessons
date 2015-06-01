@@ -1,10 +1,21 @@
 #ifndef BUFIO_H
 #define BUFIO_H
 
-#include <stdio.h>
+
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/ip.h>
+#include <arpa/inet.h>
+#include <stdio.h>
 #include <stddef.h>
 #include <errno.h>
+#include <stdlib.h>
+#include <sys/wait.h>
+#include <string.h>
+#include <netdb.h>
+#include <sys/un.h>
+#include <netinet/in.h>
 
 struct buf_t {
     void* buf;

@@ -5,6 +5,9 @@
 #include <errno.h>
 #include <sys/wait.h>
 #include <sys/types.h>
+#include <sys/socket.h>
+#include <string.h>
+
 
 struct buf_t *buf_new(size_t capacity) {
     struct buf_t* newBuf = (struct buf_t*)malloc(sizeof(struct buf_t));

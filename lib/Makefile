@@ -1,7 +1,7 @@
 CFLAGS=-Wextra -Wall
 CC=gcc
 
-all:	helpers
+all:	helpers bufio
 
 bufio:
 	$(CC) -fPIC -c bufio.c -o bufio.o $(CFLAGS)
