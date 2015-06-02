@@ -46,12 +46,12 @@ ssize_t buf_fill(int fd, struct buf_t *buf, size_t required) {
             return cur;
         }
         buf->size += cur;
-        required -= cur;
     }
     return buf->size;
 }
 
 ssize_t buf_flush(int fd, struct buf_t *buf, size_t required) {
+//printf("HM %d\n", (int)required);
     if (buf == NULL) {
         abort();
     }

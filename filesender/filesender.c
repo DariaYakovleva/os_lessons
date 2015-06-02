@@ -61,15 +61,15 @@ int main(int argc, char *argv[]) {
 			}		
 			int cap = 4096;
 			struct buf_t* buf = buf_new(cap);
-			while (buf_fill(file, buf, cap) > 0) {
+			int lenR;
+			while ((lenR = buf_fill(file, buf, 1)) > 0) {
 				ssize_t len;
-				if ((len = write(clientSocket, buf->buf, buf_size(buf))) == -1) {
+				if ((len = buf_flush(clientSocket, buf, lenR)) == -1) {
 					fprintf(stderr, "write error\n");
 					close(clientSocket);
 					close(file);
 					exit(EXIT_FAILURE);
 				}
-				buf->size -= len;
 			}
 			close(clientSocket);
 			close(file);
