@@ -1,4 +1,6 @@
 #include "../lib/bufio.h"
+#include <sys/stat.h>
+#include <fcntl.h>
 
 size_t const MAX_LEN = 1 << 17;
 char* port;
@@ -17,7 +19,7 @@ int main(int argc, char *argv[]) {
 	struct sockaddr_storage client_addr;
 	socklen_t addr_size = sizeof(client_addr);
 	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_UNSPEC;
+	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 	if ((status = getaddrinfo(NULL, port, &hints, &servinfo)) != 0) {
@@ -30,29 +32,52 @@ int main(int argc, char *argv[]) {
 	}
 	if (bind(serverSocket, servinfo->ai_addr, servinfo->ai_addrlen) == -1) {
 		fprintf(stderr, "can't bind port %s\n", port);
+		close(serverSocket);
 		exit(EXIT_FAILURE);
 	}
 	if (listen(serverSocket, 10) == -1) {
 		fprintf(stderr, "listen error\n");
+		close(serverSocket);
 		exit(EXIT_FAILURE);
 	}
 	while (work) {
 		addr_size = sizeof(client_addr);
 		int clientSocket = accept(serverSocket, (struct sockaddr*)&client_addr, &addr_size);
+//		fprintf(stderr, "cl = %d %d\n", clientSocket, EAGAIN);
 		if (clientSocket == -1) {
-			fprintf(stderr, "aceept socket failed\n");
+			fprintf(stderr, "accept socket failed\n");
 			continue;
 		}
-		int cap = 4096;
-		struct buf_t* buf = buf_new(cap);
-		buf_fill(clientSocket, buf, cap);
-		if (write(clientSocket, buf->buf, buf_size(buf)) == -1) {
-			fprintf(stderr, "write error\n");
-		}	
-		close(clientSocket);
+		pid_t pid = fork();
+		if (pid == -1) {
+			fprintf(stderr, "fork error\n");
+		}
+		if (pid == 0) {
+			int file = open(filename, O_RDWR | O_NONBLOCK);
+			if (file == -1) {
+				fprintf(stderr, "open error\n");
+				close(clientSocket);
+				exit(EXIT_FAILURE);
+			}		
+			int cap = 4096;
+			struct buf_t* buf = buf_new(cap);
+			while (buf_fill(file, buf, cap) > 0) {
+				ssize_t len;
+				if ((len = write(clientSocket, buf->buf, buf_size(buf))) == -1) {
+					fprintf(stderr, "write error\n");
+					close(clientSocket);
+					close(file);
+					exit(EXIT_FAILURE);
+				}
+				buf->size -= len;
+			}
+			close(clientSocket);
+			close(file);
+			exit(EXIT_SUCCESS);
+		} else {
+			close(clientSocket);
+		}
 	}
-	
-
 
 	close(serverSocket);
 	freeaddrinfo(servinfo);

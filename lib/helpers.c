@@ -8,16 +8,12 @@
 
 int pids[100];
 int cpid = 0;
+int ret = 0;
 
 void shandler(int sig) {
-	if (sig == SIGQUIT) {
-		printf("BBB\n");
-		exit(-5);
-	} else {
-		int j;
-		for (j = 0; j < cpid; j++) {
-			kill(pids[j], SIGKILL);
-		}
+	int j;
+	for (j = 0; j < cpid; j++) {
+		kill(pids[j], SIGKILL);
 	}
 }
 
@@ -50,15 +46,15 @@ ssize_t write_ (int fd, const void *buffer, size_t count) {
 }
 
 ssize_t read_until(int fd, void *buffer, size_t count, char delimiter) {
-
     ssize_t curS = 0;
     while ((size_t)curS < count) {
         ssize_t cur = read(fd, buffer + curS, count - curS);
         if (cur == 0) {
-//		return -5;
-            return curS;
+		return -5;
+//            return curS;
         }
         if (cur == -1) {
+//		return -5;
             return cur;
         }
         int i = curS;
@@ -123,7 +119,7 @@ int runpiped(struct execargs_t **programs, size_t n) {
 		int pipefd[2];
 		if (pipe(pipefd) == -1) {	
 			fprintf(stderr, "pipe failed\n");
-			kill(0, SIGINT);
+//			kill(0, SIGINT);
 			return -1;
 		}
 		pipes[cpip] = pipefd[0];
@@ -133,7 +129,7 @@ int runpiped(struct execargs_t **programs, size_t n) {
 	    pid_t pid = fork();
 		if (pid == -1) {
 			fprintf(stderr, "can't create child\n");
-			kill(0, SIGINT);
+//			kill(0, SIGINT);
 			return -1;
 		}
 		if (pid == 0) {	//child
@@ -166,7 +162,6 @@ int runpiped(struct execargs_t **programs, size_t n) {
 //			fprintf(stderr, "read = %d, write %d\n", pipefd[0], pipefd[1]);
 		}
 	}
-	
 	int j;
 	for (j = 0; j < cpip; j++) {
 		close(pipes[j]);

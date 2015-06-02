@@ -37,6 +37,7 @@ struct execargs_t* add_program(char* str) {
 
 struct execargs_t* programs[10];
 ssize_t split_programs(char* str, ssize_t len) {
+	if (len == -1) return -5;
 	char* cur_prog = malloc(MAX_LEN);
 	size_t cntProg = 0;
 	ssize_t clen = 0;
@@ -59,10 +60,7 @@ ssize_t split_programs(char* str, ssize_t len) {
 }
 
 void handler(int signal) {
-	if (signal == SIGQUIT) {
-		ok = 0;
-		exit(EXIT_SUCCESS);
-	} 
+	printf("INT\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -70,23 +68,24 @@ int main(int argc, char *argv[]) {
 	memset(&act, 0, sizeof(act));
 	act.sa_handler = handler;
 	sigaction(SIGINT, &act, 0);
-	sigaction(SIGQUIT, &act, 0);
 
 	void *buf = malloc(MAX_LEN);
 	ssize_t len;
 	while (ok == 1) {
-		write_(STDOUT_FILENO, "$", 1);
+		write(STDOUT_FILENO, "$", 1);
 		len = read_until(STDIN_FILENO, buf, MAX_LEN, '\n');
 		if (len == -5) return 0;
-//		printf("BUF = !%s!\n", (char*)buf);
-		ssize_t cnt = split_programs((char*)buf, len);
+//		printf("BUF = !%d!\n", (int)len);
+		ssize_t cnt = split_programs((char*)buf,len);
 		*(char*)buf = 0;
+		if (cnt == -5) {
+			continue;
+		}
 		if (runpiped(programs, cnt) == -1) {
 			fprintf(stderr, "ooops..");
 		}
 	}
-    
-	free(buf);
+	free(buf);	
     return 0;
 }
 
