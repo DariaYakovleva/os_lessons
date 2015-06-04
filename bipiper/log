@@ -1,0 +1,24 @@
+Makefile:14: предупреждение: переопределение команд для цели `forking'
+Makefile:10: предупреждение: старые команды для цели `forking' игнорируются
+helpers.c: In function ‘shandler’:
+helpers.c:13:19: warning: unused parameter ‘sig’ [-Wunused-parameter]
+ void shandler(int sig) {
+                   ^
+polling.c:6:7: warning: type defaults to ‘int’ in declaration of ‘N’ [-Wimplicit-int]
+ const N = 127;
+       ^
+polling.c:47:15: error: variably modified ‘fds’ at file scope
+ struct pollfd fds[N * 2 + 2];
+               ^
+polling.c:48:10: error: variably modified ‘buffs’ at file scope
+ buf_pair buffs[N];
+          ^
+polling.c: In function ‘main’:
+polling.c:85:3: warning: passing argument 1 of ‘poll’ from incompatible pointer type [enabled by default]
+   int pp = poll(&fds, N * 2 + 2, TIMER * 1000);
+   ^
+In file included from polling.c:4:0:
+/usr/include/x86_64-linux-gnu/sys/poll.h:57:12: note: expected ‘struct pollfd *’ but argument is of type ‘struct pollfd (*)[1]’
+ extern int poll (struct pollfd *__fds, nfds_t __nfds, int __timeout);
+            ^
+make: *** [forking] Ошибка 1
