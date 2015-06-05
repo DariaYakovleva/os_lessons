@@ -47,7 +47,7 @@ ssize_t buf_fill(int fd, struct buf_t *buf, size_t required) {
     if (buf == NULL) {
         abort();
     }
-    set_nonblock(fd, 1);
+//    set_nonblock(fd, 1);
     while (buf->size < required && buf->size < buf->capacity) {
         ssize_t cur = read(fd, buf->buf + buf->size, buf->capacity - buf->size);
 //        printf("READ2 cur=%d size=%d req=%d\n", (int)cur, (int)buf->size, (int)required);
@@ -69,7 +69,7 @@ ssize_t buf_flush(int fd, struct buf_t *buf, size_t required) {
     }
     size_t cur = 0;
     size_t prevSize = buf->size;
-    set_nonblock(fd, 0);
+//    set_nonblock(fd, 0);
     while (cur < required) {
         ssize_t len = write(fd, buf->buf, buf->size - cur);
         if (len == -1) {

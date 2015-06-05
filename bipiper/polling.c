@@ -53,13 +53,13 @@ int add_clients() {
 	socklen_t addr_size = sizeof(client_addr);
 
 	int client1 = accept(fds[0].fd, (struct sockaddr*)&client_addr, &addr_size);
-//	fprintf(stderr, "cl1 = %d\n", client1);
+	fprintf(stderr, "cl1 = %d\n", client1);
 	if (client1 == -1) {
 		fprintf(stderr, "accept socket failed\n");
 		return -1;
 	}
 	int client2 = accept(fds[1].fd, (struct sockaddr*)&client_addr, &addr_size);
-//	fprintf(stderr, "cl2 = %d\n", client2);
+	fprintf(stderr, "cl2 = %d\n", client2);
 	if (client2 == -1) {
 			fprintf(stderr, "accept socket failed\n");
 			close(client1);
@@ -86,6 +86,8 @@ void delete_fd(int pos) {
 	int i = pos * 2 + 2;
 	int j = cnt_fds * 2;
 	struct pollfd tmp = fds[j];
+	close(fds[i].fd);
+	close(fds[i + 1].fd);
 	fds[j] = fds[i];
 	fds[i] = tmp;
 	tmp = fds[j + 1];
@@ -144,22 +146,25 @@ int main(int argc, char *argv[]) {
 					buf = buffs[i / 2 - 1].buf2;
 					bro = i - 1;
 				}
+				size_t prev = buf_size(buf);
 				if (buf_fill(fds[i].fd, buf, 1) == -1 && errno != EAGAIN) {
 					fprintf(stderr, "socket %d error\n", fds[i].fd);
 					shutdown(fds[i].fd, SHUT_RD);
-					fds[i].revents |= POLLHUP;
-				}
-				if (buf_size(buf) == 0) {
-					fprintf(stderr, "socket %d is closed\n", fds[i].fd);			
-					shutdown(fds[i].fd, SHUT_RD);
-					fds[i].revents |= POLLHUP;
-				} else {
-					fds[bro].events |= POLLOUT;
 				}
 				if (buf_size(buf) == buf_capacity(buf)) {
 					fds[i].events &= ~POLLIN;
 				} else {
 					fds[i].events |= POLLIN;
+				}
+
+				if (buf_size(buf) == prev) {
+//					fprintf(stderr, "socket %d is closed\n", fds[i].fd);	
+					shutdown(fds[i].fd, SHUT_RD);
+				}
+				if (buf_size(buf) == 0) {
+					fds[bro].events &= ~POLLOUT;
+				} else {
+					fds[bro].events |= POLLOUT;
 				}
 			}
 			if (fds[i].revents & POLLOUT) {
@@ -175,7 +180,7 @@ int main(int argc, char *argv[]) {
 				if (buf_flush(fds[i].fd, buf, buf_size(buf)) == -1 && errno != EAGAIN) {
 					fprintf(stderr, "write error\n");
 					shutdown(fds[i].fd, SHUT_WR);
-					fds[i].fd &= ~POLLOUT;
+					fds[i].events &= ~POLLOUT;
 				}
 				if (buf_size(buf) == 0) {
 					fds[i].events &= ~POLLOUT;
@@ -188,8 +193,10 @@ int main(int argc, char *argv[]) {
 					fds[bro].events |= POLLIN;
 				}
 			}
-			if ((fds[i].revents & POLLHUP) | (fds[i].revents & POLLERR)) {
-				fprintf(stderr, "client error %d \n", fds[i].fd);
+			int bro = i + 1;
+			if (i % 2 == 1) bro = i - 1;
+			if ((fds[i].revents & POLLERR) || ((fds[i].events & (~POLLHUP)) == 0 && (fds[bro].events & (~POLLHUP)) == 0)) {
+				fprintf(stderr, "clients closed %d \n", fds[i].fd);
 				delete_fd(i / 2 - 1);
 				break;
 			}

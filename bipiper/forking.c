@@ -73,29 +73,37 @@ int main(int argc, char *argv[]) {
 				struct buf_t* buf = buf_new(cap);
 				if (num == 0) {
 					ssize_t lenR;
+					size_t prev = buf_size(buf);
 					while ((lenR = buf_fill(clientSocket1, buf, 1)) > 0) {
 						ssize_t len;
 						if ((len = buf_flush(clientSocket2, buf, lenR)) == -1) {
 							fprintf(stderr, "write error\n");
-							close(clientSocket1);
-							close(clientSocket2);
-							exit(EXIT_FAILURE);
+							shutdown(clientSocket2, SHUT_WR);							
+//							exit(EXIT_FAILURE);
 						}
+					}
+					if (buf_size(buf) == prev) {
+						shutdown(clientSocket1, SHUT_RD);
 					}
 				} else {
 					ssize_t lenR;
+					size_t prev = buf_size(buf);
 					while ((lenR = buf_fill(clientSocket2, buf, 1)) > 0) {
 						ssize_t len;
 						if ((len = buf_flush(clientSocket1, buf, lenR)) == -1) {
 							fprintf(stderr, "write error\n");
-							close(clientSocket1);
-							close(clientSocket2);
-							exit(EXIT_FAILURE);
+							shutdown(clientSocket1, SHUT_WR);
+//							close(clientSocket1);
+//							close(clientSocket2);
+//							exit(EXIT_FAILURE);
 						}
 					}
+					if (buf_size(buf) == prev) {
+						shutdown(clientSocket2, SHUT_RD);
+					}
 				}
-				close(clientSocket1);
-				close(clientSocket2);
+//				close(clientSocket1);
+//				close(clientSocket2);
 				exit(EXIT_SUCCESS);
 			} else {
 				if (num == 1) {

@@ -104,7 +104,7 @@ struct execargs_t *createExec() {
 
 int exec(struct execargs_t* args) {
 //    return spawn(args->file, args->argv);
-	execvp(args->file, args->argv);
+	return execvp(args->file, args->argv);
 }
 
 
