@@ -10,7 +10,7 @@ int pids[100];
 int cpid = 0;
 int ret = 0;
 
-void shandler(int sig) {
+void shandler() {
 	int j;
 	for (j = 0; j < cpid; j++) {
 		kill(pids[j], SIGKILL);

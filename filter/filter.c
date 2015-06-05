@@ -49,6 +49,8 @@ int main(int argc, char *argv[]) {
             int res = spawn(argv[1], args);
 //            printf("!res=%d %s!\n", res, args[argc - 1]);
             if (res == 0) {
+		*((char*)curStr + lenw) = '\n';
+		lenw++;
                 write_(STDOUT_FILENO, curStr, lenw);
             }
         }
@@ -65,6 +67,8 @@ int main(int argc, char *argv[]) {
             args[argc] = NULL;
             int res = spawn(argv[1], args);
             if (res == 0) {
+		*((char*)curStr + lenw) = '\n';
+		lenw++;
                 write_(STDOUT_FILENO, curStr, lenw);
             }
         }
