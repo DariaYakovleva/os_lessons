@@ -10,11 +10,17 @@ int pids[100];
 int cpid = 0;
 int ret = 0;
 
-void shandler() {
+void stop_work() {
 	int j;
 	for (j = 0; j < cpid; j++) {
 		kill(pids[j], SIGKILL);
+		waitpid(pids[j], NULL, 0);
 	}
+}
+
+void shandler() {
+//	fprintf(stderr, "DDDD\n");
+	stop_work();
 }
 
 
@@ -50,11 +56,9 @@ ssize_t read_until(int fd, void *buffer, size_t count, char delimiter) {
     while ((size_t)curS < count) {
         ssize_t cur = read(fd, buffer + curS, count - curS);
         if (cur == 0) {
-		return -5;
-//            return curS;
+            return curS;
         }
         if (cur == -1) {
-//		return -5;
             return cur;
         }
         int i = curS;
@@ -99,7 +103,8 @@ struct execargs_t *createExec() {
 }
 
 int exec(struct execargs_t* args) {
-    return spawn(args->file, args->argv);
+//    return spawn(args->file, args->argv);
+	execvp(args->file, args->argv);
 }
 
 
@@ -108,8 +113,6 @@ int runpiped(struct execargs_t **programs, size_t n) {
 	memset(&act2, 0, sizeof(act2));
 	act2.sa_handler = shandler;
 	sigaction(SIGINT, &act2, 0);
-	sigaction(SIGQUIT, &act2, 0);
-
 	int next_input = STDIN_FILENO;
 	int pipes[100];
 	int cpip = 0;
@@ -119,17 +122,17 @@ int runpiped(struct execargs_t **programs, size_t n) {
 		int pipefd[2];
 		if (pipe(pipefd) == -1) {	
 			fprintf(stderr, "pipe failed\n");
-//			kill(0, SIGINT);
+			stop_work();
 			return -1;
 		}
 		pipes[cpip] = pipefd[0];
 		cpip++;
 		pipes[cpip] = pipefd[1];
 		cpip++;
-	    pid_t pid = fork();
+    	        pid_t pid = fork();
 		if (pid == -1) {
 			fprintf(stderr, "can't create child\n");
-//			kill(0, SIGINT);
+			stop_work();
 			return -1;
 		}
 		if (pid == 0) {	//child
@@ -150,11 +153,7 @@ int runpiped(struct execargs_t **programs, size_t n) {
 					close(pipes[j]);
 				}
 			}
-			if (exec(*(programs + i)) == 0) {
-				exit(EXIT_SUCCESS);
-			} else {
-				exit(EXIT_FAILURE);
-			}
+			exec(*(programs + i));
 	    } else {	//parent
 			pids[cpid] = pid;
 			cpid++;
@@ -167,20 +166,21 @@ int runpiped(struct execargs_t **programs, size_t n) {
 		close(pipes[j]);
 //		fprintf(stderr, "pipe close %d\n", pipes[j]);
 	}
+	int bad = 0;
 	for (j = 0; j < cpid; j++) {
 		int status;
 		pid_t w = waitpid(pids[j], &status, 0);
 //		fprintf(stderr, "pid end %d w = %d\n", pids[j], w);
 		if (w == -1) {
 			fprintf(stderr, "exit fail from process %d\n", pids[j]);
-			return -1;
+			bad = -1;
 		}
 		if (!WIFEXITED(status)) {
 			fprintf(stderr, "exit fail from process %d\n", pids[j]);
-			return -1;
+			bad = -1;
 		}
 	}
-    return 0;
+    return bad;
 }
 
 

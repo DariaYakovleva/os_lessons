@@ -60,7 +60,7 @@ ssize_t split_programs(char* str, ssize_t len) {
 }
 
 void handler(int signal) {
-	printf("INT\n");
+//	printf("INT\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -74,7 +74,7 @@ int main(int argc, char *argv[]) {
 	while (ok == 1) {
 		write(STDOUT_FILENO, "$", 1);
 		len = read_until(STDIN_FILENO, buf, MAX_LEN, '\n');
-		if (len == -5) return 0;
+		if (len == 0) return 0;
 //		printf("BUF = !%d!\n", (int)len);
 		ssize_t cnt = split_programs((char*)buf,len);
 		*(char*)buf = 0;
