@@ -16,7 +16,7 @@ ssize_t getStr(char* ans, char* w) {
     if (lenw == lenBuf) {
         return 0;
     }
-    (*(ans + lenw)) = '\0';
+    (*(ans + lenw)) = 0;
     lenw++;
     int pos = 0;
     while (pos + lenw < lenBuf) {
@@ -49,8 +49,8 @@ int main(int argc, char *argv[]) {
             int res = spawn(argv[1], args);
 //            printf("!res=%d %s!\n", res, args[argc - 1]);
             if (res == 0) {
-		*((char*)curStr + lenw) = '\n';
-		lenw++;
+				*((char*)curStr + lenw - 1) = '\n';
+				*((char*)curStr + lenw) = 0;
                 write_(STDOUT_FILENO, curStr, lenw);
             }
         }
@@ -67,8 +67,8 @@ int main(int argc, char *argv[]) {
             args[argc] = NULL;
             int res = spawn(argv[1], args);
             if (res == 0) {
-		*((char*)curStr + lenw) = '\n';
-		lenw++;
+				*((char*)curStr + lenw - 1) = '\n';
+				*((char*)curStr + lenw) = 0;
                 write_(STDOUT_FILENO, curStr, lenw);
             }
         }
